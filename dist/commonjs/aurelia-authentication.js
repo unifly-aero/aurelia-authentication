@@ -3,9 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.FetchConfig = exports.AuthorizeStep = exports.AuthenticateStep = exports.AuthService = exports.Authentication = exports.OAuth2 = exports.OAuth1 = exports.AuthLock = exports.Storage = exports.BaseConfig = exports.logger = exports.Popup = undefined;
+exports.FetchConfig = exports.AuthorizeStep = exports.AuthenticateStep = exports.AuthService = exports.Authentication = exports.Saml = exports.OAuth2 = exports.OAuth1 = exports.AuthLock = exports.Storage = exports.BaseConfig = exports.logger = exports.Popup = undefined;
 
-var _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _class6, _desc, _value, _class7, _dec12, _dec13, _class8, _desc2, _value2, _class9, _dec14, _class11, _dec15, _class12, _dec16, _class13;
+var _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _dec6, _dec7, _dec8, _dec9, _dec10, _dec11, _dec12, _class7, _desc, _value, _class8, _dec13, _dec14, _class9, _desc2, _value2, _class10, _dec15, _class12, _dec16, _class13, _dec17, _class14;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -835,8 +835,44 @@ function camelCase(name) {
   });
 }
 
-var Authentication = exports.Authentication = (_dec5 = (0, _aureliaDependencyInjection.inject)(Storage, BaseConfig, OAuth1, OAuth2, AuthLock), _dec6 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.loginRoute instead.' }), _dec7 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.loginRedirect instead.' }), _dec8 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.joinBase(baseConfig.loginUrl) instead.' }), _dec9 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.joinBase(baseConfig.signupUrl) instead.' }), _dec10 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.joinBase(baseConfig.profileUrl) instead.' }), _dec11 = (0, _aureliaMetadata.deprecated)({ message: 'Use .getAccessToken() instead.' }), _dec5(_class6 = (_class7 = function () {
-  function Authentication(storage, config, oAuth1, oAuth2, auth0Lock) {
+var Saml = exports.Saml = (_dec5 = (0, _aureliaDependencyInjection.inject)(Storage, Popup, BaseConfig), _dec5(_class6 = function () {
+  function Saml(storage, popup, config) {
+    
+
+    this.storage = storage;
+    this.config = config;
+    this.popup = popup;
+    this.defaults = {
+      url: null,
+      name: null,
+      state: null,
+      scope: null,
+      scopeDelimiter: null,
+      redirectUri: null,
+      popupOptions: null,
+      authorizationEndpoint: null,
+      responseParams: null,
+      requiredUrlParams: null,
+      optionalUrlParams: null
+    };
+  }
+
+  Saml.prototype.open = function open(options, userData) {
+    var provider = (0, _extend2.default)(true, {}, this.defaults, options);
+    var popup = this.popup.open(options.url, provider.name, provider.popupOptions);
+    var openPopup = this.config.platform === 'mobile' ? popup.eventListener(provider.redirectUri) : popup.pollPopup();
+
+    return openPopup.then(function (qs) {
+      return {
+        "access_token": qs.access_token
+      };
+    });
+  };
+
+  return Saml;
+}()) || _class6);
+var Authentication = exports.Authentication = (_dec6 = (0, _aureliaDependencyInjection.inject)(Storage, BaseConfig, OAuth1, OAuth2, AuthLock, Saml), _dec7 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.loginRoute instead.' }), _dec8 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.loginRedirect instead.' }), _dec9 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.joinBase(baseConfig.loginUrl) instead.' }), _dec10 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.joinBase(baseConfig.signupUrl) instead.' }), _dec11 = (0, _aureliaMetadata.deprecated)({ message: 'Use baseConfig.joinBase(baseConfig.profileUrl) instead.' }), _dec12 = (0, _aureliaMetadata.deprecated)({ message: 'Use .getAccessToken() instead.' }), _dec6(_class7 = (_class8 = function () {
+  function Authentication(storage, config, oAuth1, oAuth2, auth0Lock, saml) {
     
 
     this.storage = storage;
@@ -844,6 +880,7 @@ var Authentication = exports.Authentication = (_dec5 = (0, _aureliaDependencyInj
     this.oAuth1 = oAuth1;
     this.oAuth2 = oAuth2;
     this.auth0Lock = auth0Lock;
+    this.saml = saml;
     this.updateTokenCallstack = [];
     this.accessToken = null;
     this.refreshToken = null;
@@ -1063,10 +1100,11 @@ var Authentication = exports.Authentication = (_dec5 = (0, _aureliaDependencyInj
 
     if (oauthType === 'auth0-lock') {
       providerLogin = this.auth0Lock;
+    } else if (oauthType === 'saml') {
+      providerLogin = this.saml;
     } else {
       providerLogin = oauthType === '1.0' ? this.oAuth1 : this.oAuth2;
     }
-
     return providerLogin.open(this.config.providers[name], userData);
   };
 
@@ -1129,7 +1167,7 @@ var Authentication = exports.Authentication = (_dec5 = (0, _aureliaDependencyInj
   }]);
 
   return Authentication;
-}(), (_applyDecoratedDescriptor(_class7.prototype, 'getLoginRoute', [_dec6], Object.getOwnPropertyDescriptor(_class7.prototype, 'getLoginRoute'), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, 'getLoginRedirect', [_dec7], Object.getOwnPropertyDescriptor(_class7.prototype, 'getLoginRedirect'), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, 'getLoginUrl', [_dec8], Object.getOwnPropertyDescriptor(_class7.prototype, 'getLoginUrl'), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, 'getSignupUrl', [_dec9], Object.getOwnPropertyDescriptor(_class7.prototype, 'getSignupUrl'), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, 'getProfileUrl', [_dec10], Object.getOwnPropertyDescriptor(_class7.prototype, 'getProfileUrl'), _class7.prototype), _applyDecoratedDescriptor(_class7.prototype, 'getToken', [_dec11], Object.getOwnPropertyDescriptor(_class7.prototype, 'getToken'), _class7.prototype)), _class7)) || _class6);
+}(), (_applyDecoratedDescriptor(_class8.prototype, 'getLoginRoute', [_dec7], Object.getOwnPropertyDescriptor(_class8.prototype, 'getLoginRoute'), _class8.prototype), _applyDecoratedDescriptor(_class8.prototype, 'getLoginRedirect', [_dec8], Object.getOwnPropertyDescriptor(_class8.prototype, 'getLoginRedirect'), _class8.prototype), _applyDecoratedDescriptor(_class8.prototype, 'getLoginUrl', [_dec9], Object.getOwnPropertyDescriptor(_class8.prototype, 'getLoginUrl'), _class8.prototype), _applyDecoratedDescriptor(_class8.prototype, 'getSignupUrl', [_dec10], Object.getOwnPropertyDescriptor(_class8.prototype, 'getSignupUrl'), _class8.prototype), _applyDecoratedDescriptor(_class8.prototype, 'getProfileUrl', [_dec11], Object.getOwnPropertyDescriptor(_class8.prototype, 'getProfileUrl'), _class8.prototype), _applyDecoratedDescriptor(_class8.prototype, 'getToken', [_dec12], Object.getOwnPropertyDescriptor(_class8.prototype, 'getToken'), _class8.prototype)), _class8)) || _class7);
 
 function getPayload(token) {
   var payload = null;
@@ -1141,7 +1179,7 @@ function getPayload(token) {
   return payload;
 }
 
-var AuthService = exports.AuthService = (_dec12 = (0, _aureliaDependencyInjection.inject)(Authentication, BaseConfig, _aureliaTemplatingResources.BindingSignaler, _aureliaEventAggregator.EventAggregator), _dec13 = (0, _aureliaMetadata.deprecated)({ message: 'Use .getAccessToken() instead.' }), _dec12(_class8 = (_class9 = function () {
+var AuthService = exports.AuthService = (_dec13 = (0, _aureliaDependencyInjection.inject)(Authentication, BaseConfig, _aureliaTemplatingResources.BindingSignaler, _aureliaEventAggregator.EventAggregator), _dec14 = (0, _aureliaMetadata.deprecated)({ message: 'Use .getAccessToken() instead.' }), _dec13(_class9 = (_class10 = function () {
   function AuthService(authentication, config, bindingSignaler, eventAggregator) {
     var _this8 = this;
 
@@ -1543,8 +1581,8 @@ var AuthService = exports.AuthService = (_dec12 = (0, _aureliaDependencyInjectio
   }]);
 
   return AuthService;
-}(), (_applyDecoratedDescriptor(_class9.prototype, 'getCurrentToken', [_dec13], Object.getOwnPropertyDescriptor(_class9.prototype, 'getCurrentToken'), _class9.prototype)), _class9)) || _class8);
-var AuthenticateStep = exports.AuthenticateStep = (_dec14 = (0, _aureliaDependencyInjection.inject)(AuthService), _dec14(_class11 = function () {
+}(), (_applyDecoratedDescriptor(_class10.prototype, 'getCurrentToken', [_dec14], Object.getOwnPropertyDescriptor(_class10.prototype, 'getCurrentToken'), _class10.prototype)), _class10)) || _class9);
+var AuthenticateStep = exports.AuthenticateStep = (_dec15 = (0, _aureliaDependencyInjection.inject)(AuthService), _dec15(_class12 = function () {
   function AuthenticateStep(authService) {
     
 
@@ -1571,8 +1609,8 @@ var AuthenticateStep = exports.AuthenticateStep = (_dec14 = (0, _aureliaDependen
   };
 
   return AuthenticateStep;
-}()) || _class11);
-var AuthorizeStep = exports.AuthorizeStep = (_dec15 = (0, _aureliaDependencyInjection.inject)(AuthService), _dec15(_class12 = function () {
+}()) || _class12);
+var AuthorizeStep = exports.AuthorizeStep = (_dec16 = (0, _aureliaDependencyInjection.inject)(AuthService), _dec16(_class13 = function () {
   function AuthorizeStep(authService) {
     
 
@@ -1601,8 +1639,8 @@ var AuthorizeStep = exports.AuthorizeStep = (_dec15 = (0, _aureliaDependencyInje
   };
 
   return AuthorizeStep;
-}()) || _class12);
-var FetchConfig = exports.FetchConfig = (_dec16 = (0, _aureliaDependencyInjection.inject)(_aureliaFetchClient.HttpClient, _aureliaApi.Config, AuthService, BaseConfig), _dec16(_class13 = function () {
+}()) || _class13);
+var FetchConfig = exports.FetchConfig = (_dec17 = (0, _aureliaDependencyInjection.inject)(_aureliaFetchClient.HttpClient, _aureliaApi.Config, AuthService, BaseConfig), _dec17(_class14 = function () {
   function FetchConfig(httpClient, clientConfig, authService, config) {
     
 
@@ -1727,7 +1765,7 @@ var FetchConfig = exports.FetchConfig = (_dec16 = (0, _aureliaDependencyInjectio
   }]);
 
   return FetchConfig;
-}()) || _class13);
+}()) || _class14);
 function configure(frameworkConfig, config) {
   if (!_aureliaPal.PLATFORM.location.origin) {
     _aureliaPal.PLATFORM.location.origin = _aureliaPal.PLATFORM.location.protocol + '//' + _aureliaPal.PLATFORM.location.hostname + (_aureliaPal.PLATFORM.location.port ? ':' + _aureliaPal.PLATFORM.location.port : '');

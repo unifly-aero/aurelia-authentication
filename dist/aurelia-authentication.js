@@ -976,15 +976,76 @@ function camelCase(name: string): string {
   });
 }
 
+/**
+ * Saml service class
+ *
+ * @export
+ * @class Saml
+ */
+@inject(Storage, Popup, BaseConfig)
+export class Saml {
+    /**
+     * Creates an instance of OAuth2.
+     *
+     * @param {Storage} storage The Storage instance
+     * @param {Popup}   popup   The Popup instance
+     * @param {Config}  config  The Config instance
+     *
+     * @memberOf Saml
+     */
+    constructor(storage: Storage, popup: Popup, config: BaseConfig) {
+        this.storage      = storage;
+        this.config       = config;
+        this.popup        = popup;
+        this.defaults     = {
+            url                  : null,
+            name                 : null,
+            state                : null,
+            scope                : null,
+            scopeDelimiter       : null,
+            redirectUri          : null,
+            popupOptions         : null,
+            authorizationEndpoint: null,
+            responseParams       : null,
+            requiredUrlParams    : null,
+            optionalUrlParams    : null,
+        };
+    }
+
+    /**
+     * Open OAuth2 flow
+     *
+     * @param {{}} options  OAuth2 and dialog options
+     * @param {{}} userData Extra data for the authentications server
+     * @returns {Promise<any>} Authentication server response
+     *
+     * @memberOf Saml
+     */
+    open(options: {}, userData: {}): Promise<any> {
+        const provider = extend(true, {}, this.defaults, options);
+        const popup = this.popup.open(options.url, provider.name, provider.popupOptions);
+        const openPopup = (this.config.platform === 'mobile')
+            ? popup.eventListener(provider.redirectUri)
+            : popup.pollPopup();
+
+        return openPopup.then(qs => {
+            return {
+                "access_token": qs.access_token
+            }
+        })
+    }
+}
+
 /* eslint-disable max-lines */
-@inject(Storage, BaseConfig, OAuth1, OAuth2, AuthLock)
+@inject(Storage, BaseConfig, OAuth1, OAuth2, AuthLock, Saml)
 export class Authentication {
-  constructor(storage: Storage, config: BaseConfig, oAuth1: OAuth1, oAuth2: OAuth2, auth0Lock: AuthLock) {
+  constructor(storage: Storage, config: BaseConfig, oAuth1: OAuth1, oAuth2: OAuth2, auth0Lock: AuthLock, saml: Saml) {
     this.storage              = storage;
     this.config               = config;
     this.oAuth1               = oAuth1;
     this.oAuth2               = oAuth2;
     this.auth0Lock            = auth0Lock;
+    this.saml                 = saml;
     this.updateTokenCallstack = [];
     this.accessToken          = null;
     this.refreshToken         = null;
@@ -1252,10 +1313,11 @@ export class Authentication {
 
     if (oauthType === 'auth0-lock') {
       providerLogin = this.auth0Lock;
+    } else if (oauthType === 'saml') {
+      providerLogin = this.saml;
     } else {
-      providerLogin = (oauthType === '1.0' ? this.oAuth1 : this.oAuth2);
+        providerLogin = (oauthType === '1.0' ? this.oAuth1 : this.oAuth2);
     }
-
     return providerLogin.open(this.config.providers[name], userData);
   }
 

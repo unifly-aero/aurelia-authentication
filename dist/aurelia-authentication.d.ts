@@ -304,9 +304,40 @@ export declare class OAuth2 {
   buildLogoutQuery(provider: string): string;
 }
 
+/**
+ * Saml service class
+ *
+ * @export
+ * @class Saml
+ */
+export declare class Saml {
+  
+  /**
+       * Creates an instance of OAuth2.
+       *
+       * @param {Storage} storage The Storage instance
+       * @param {Popup}   popup   The Popup instance
+       * @param {Config}  config  The Config instance
+       *
+       * @memberOf Saml
+       */
+  constructor(storage: Storage, popup: Popup, config: BaseConfig);
+  
+  /**
+       * Open OAuth2 flow
+       *
+       * @param {{}} options  OAuth2 and dialog options
+       * @param {{}} userData Extra data for the authentications server
+       * @returns {Promise<any>} Authentication server response
+       *
+       * @memberOf Saml
+       */
+  open(options: {}, userData: {}): Promise<any>;
+}
+
 /* eslint-disable max-lines */
 export declare class Authentication {
-  constructor(storage: Storage, config: BaseConfig, oAuth1: OAuth1, oAuth2: OAuth2, auth0Lock: AuthLock);
+  constructor(storage: Storage, config: BaseConfig, oAuth1: OAuth1, oAuth2: OAuth2, auth0Lock: AuthLock, saml: Saml);
   
   /* deprecated methods */
   getLoginRoute(): any;

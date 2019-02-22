@@ -56,7 +56,11 @@ export class Popup {
     });
   }
 
-  pollPopup(): Promise<any> {
+  pollPopup(verifyQs: Function): Promise<any> {
+    if (!verifyQs) {
+      verifyQs = () => true;
+    }
+
     return new Promise((resolve, reject) => {
       this.polling = PLATFORM.global.setInterval(() => {
         let errorData;
@@ -65,15 +69,16 @@ export class Popup {
           if (this.popupWindow.location.host ===  PLATFORM.global.document.location.host
             && (this.popupWindow.location.search || this.popupWindow.location.hash)) {
             const qs = parseUrl(this.popupWindow.location);
+            if (verifyQs(qs)) {
+              if (qs.error) {
+                reject({error: qs.error});
+              } else {
+                resolve(qs);
+              }
 
-            if (qs.error) {
-              reject({error: qs.error});
-            } else {
-              resolve(qs);
+              this.popupWindow.close();
+              PLATFORM.global.clearInterval(this.polling);
             }
-
-            this.popupWindow.close();
-            PLATFORM.global.clearInterval(this.polling);
           }
         } catch (error) {
           errorData = error;

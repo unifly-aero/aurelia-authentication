@@ -241,8 +241,14 @@ System.register(['extend', 'jwt-decode', 'aurelia-pal', 'aurelia-path', 'aurelia
           });
         };
 
-        Popup.prototype.pollPopup = function pollPopup() {
+        Popup.prototype.pollPopup = function pollPopup(validateQs) {
           var _this2 = this;
+
+          if (!validateQs) {
+            validateQs = function validateQs() {
+              return true;
+            };
+          }
 
           return new Promise(function (resolve, reject) {
             _this2.polling = PLATFORM.global.setInterval(function () {
@@ -251,15 +257,16 @@ System.register(['extend', 'jwt-decode', 'aurelia-pal', 'aurelia-path', 'aurelia
               try {
                 if (_this2.popupWindow.location.host === PLATFORM.global.document.location.host && (_this2.popupWindow.location.search || _this2.popupWindow.location.hash)) {
                   var qs = parseUrl(_this2.popupWindow.location);
+                  if (validateQs(qs)) {
+                    if (qs.error) {
+                      reject({ error: qs.error });
+                    } else {
+                      resolve(qs);
+                    }
 
-                  if (qs.error) {
-                    reject({ error: qs.error });
-                  } else {
-                    resolve(qs);
+                    _this2.popupWindow.close();
+                    PLATFORM.global.clearInterval(_this2.polling);
                   }
-
-                  _this2.popupWindow.close();
-                  PLATFORM.global.clearInterval(_this2.polling);
                 }
               } catch (error) {
                 errorData = error;
@@ -968,7 +975,9 @@ System.register(['extend', 'jwt-decode', 'aurelia-pal', 'aurelia-path', 'aurelia
         Saml.prototype.open = function open(options, userData) {
           var provider = extend(true, {}, this.defaults, options);
           var popup = this.popup.open(options.url, provider.name, provider.popupOptions);
-          var openPopup = this.config.platform === 'mobile' ? popup.eventListener(provider.redirectUri) : popup.pollPopup();
+          var openPopup = this.config.platform === 'mobile' ? popup.eventListener(provider.redirectUri) : popup.pollPopup(function (qs) {
+            return qs.access_token != null;
+          });
 
           return openPopup.then(function (qs) {
             return {

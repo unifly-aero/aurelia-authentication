@@ -136,11 +136,11 @@ var Popup = exports.Popup = function () {
     });
   };
 
-  Popup.prototype.pollPopup = function pollPopup(validateQs) {
+  Popup.prototype.pollPopup = function pollPopup(verifyQs) {
     var _this2 = this;
 
-    if (!validateQs) {
-      validateQs = function validateQs() {
+    if (!verifyQs) {
+      verifyQs = function verifyQs() {
         return true;
       };
     }
@@ -152,7 +152,7 @@ var Popup = exports.Popup = function () {
         try {
           if (_this2.popupWindow.location.host === _aureliaPal.PLATFORM.global.document.location.host && (_this2.popupWindow.location.search || _this2.popupWindow.location.hash)) {
             var qs = parseUrl(_this2.popupWindow.location);
-            if (validateQs(qs)) {
+            if (verifyQs(qs)) {
               if (qs.error) {
                 reject({ error: qs.error });
               } else {
@@ -866,7 +866,7 @@ var Saml = exports.Saml = (_dec5 = (0, _aureliaDependencyInjection.inject)(Stora
     var provider = (0, _extend2.default)(true, {}, this.defaults, options);
     var popup = this.popup.open(options.url, provider.name, provider.popupOptions);
     var openPopup = this.config.platform === 'mobile' ? popup.eventListener(provider.redirectUri) : popup.pollPopup(function (qs) {
-      return qs.access_token != null;
+      return qs.error != null || qs.access_token != null;
     });
 
     return openPopup.then(function (qs) {

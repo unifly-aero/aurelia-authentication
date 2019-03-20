@@ -100,9 +100,9 @@ export let Popup = class Popup {
     });
   }
 
-  pollPopup(validateQs) {
-    if (!validateQs) {
-      validateQs = () => true;
+  pollPopup(verifyQs) {
+    if (!verifyQs) {
+      verifyQs = () => true;
     }
 
     return new Promise((resolve, reject) => {
@@ -112,7 +112,7 @@ export let Popup = class Popup {
         try {
           if (this.popupWindow.location.host === PLATFORM.global.document.location.host && (this.popupWindow.location.search || this.popupWindow.location.hash)) {
             const qs = parseUrl(this.popupWindow.location);
-            if (validateQs(qs)) {
+            if (verifyQs(qs)) {
               if (qs.error) {
                 reject({ error: qs.error });
               } else {
@@ -780,7 +780,7 @@ export let Saml = (_dec5 = inject(Storage, Popup, BaseConfig), _dec5(_class6 = c
   open(options, userData) {
     const provider = extend(true, {}, this.defaults, options);
     const popup = this.popup.open(options.url, provider.name, provider.popupOptions);
-    const openPopup = this.config.platform === 'mobile' ? popup.eventListener(provider.redirectUri) : popup.pollPopup(qs => qs.access_token != null);
+    const openPopup = this.config.platform === 'mobile' ? popup.eventListener(provider.redirectUri) : popup.pollPopup(qs => qs.error != null || qs.access_token != null);
 
     return openPopup.then(qs => {
       return {

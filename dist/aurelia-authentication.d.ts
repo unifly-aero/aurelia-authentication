@@ -13,7 +13,7 @@ export declare class Popup {
   constructor();
   open(url: string, windowName: string, options?: {}): Popup;
   eventListener(redirectUri: string): Promise<any>;
-  pollPopup(validateQs: Function): Promise<any>;
+  pollPopup(verifyQs: Function): Promise<any>;
 }
 export declare const logger: any;
 

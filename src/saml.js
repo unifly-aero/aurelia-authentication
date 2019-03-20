@@ -54,7 +54,7 @@ export class Saml {
         const popup = this.popup.open(options.url, provider.name, provider.popupOptions);
         const openPopup = (this.config.platform === 'mobile')
             ? popup.eventListener(provider.redirectUri)
-            : popup.pollPopup(qs => qs.access_token != null);
+            : popup.pollPopup(qs => qs.error != null || qs.access_token != null);
 
         return openPopup.then(qs => {
             return {
